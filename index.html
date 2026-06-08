@@ -805,14 +805,17 @@ function calcularSistema(){
 
         const dataAtual =
             d.toISOString().split("T")[0];
-
+		const movimentacoesHoje = [];
         // movimentações do dia
         while(
             indice < lista.length &&
             lista[indice].data === dataAtual
         ){
 
-            const mov = lista[indice];
+			const mov = lista[indice];
+			indice++;
+			
+			movimentacoesHoje.push(mov);
 
             // DEPÓSITO
 			const nome =
@@ -833,20 +836,27 @@ function calcularSistema(){
 
 			}
 
-            // RETIRADA
-			else{
-
-				const nome =
-					(mov.cofrinhoId || "sem-cofre")
-					.trim()
-
-
-				if(!cofres[nome]){
-					cofres[nome] = [];
-				}
-
-				let restante = mov.valor;
-
+            
+			// RETIRADA
+		else{
+		
+		    // Se for hoje, não processa agora.
+		    // Vai processar depois do rendimento.
+		    if(
+		        dataAtual === hoje.toISOString().split("T")[0]
+		    ){
+		        continue;
+		    }
+		
+		    const nome =
+		        (mov.cofrinhoId || "sem-cofre")
+		        .trim()
+		
+		    if(!cofres[nome]){
+		        cofres[nome] = [];
+		    }
+		
+		    let restante = mov.valor;
 				for(let i=0; i<cofres[nome].length; i++){
 
 					if(restante <= 0) break;
@@ -854,11 +864,10 @@ function calcularSistema(){
 					const lote = cofres[nome][i];
 
 					if(lote.valor <= restante){
-
-						restante -= lote.valor;
-
-						lote.valor = 0;
-						lote.valorInicial = 0;
+					
+					    restante -= lote.valor;
+					
+					    lote.valor = 0;
 
 					}else{
 
@@ -880,7 +889,6 @@ function calcularSistema(){
 
 			}
 
-            indice++;
         }
 
         if(
@@ -939,6 +947,66 @@ function calcularSistema(){
             ){
                 rendimentoHoje = rendimentoDia;
             }
+			if(
+			    dataAtual === hoje.toISOString().split("T")[0]
+			){
+			
+			    const retiradasHoje =
+			        movimentacoesHoje.filter(
+			            x => x.tipo === "saida"
+			        );
+			
+			    retiradasHoje.forEach(mov=>{
+			
+			        const nome =
+			            (mov.cofrinhoId || "sem-cofre")
+			            .trim();
+			
+			        if(!cofres[nome]){
+			            cofres[nome] = [];
+			        }
+			
+			        let restante = mov.valor;
+			
+			        for(
+			            let i=0;
+			            i<cofres[nome].length;
+			            i++
+			        ){
+			
+			            if(restante <= 0) break;
+			
+			            const lote =
+			                cofres[nome][i];
+			
+			            if(lote.valor <= restante){
+			
+			                restante -= lote.valor;
+			
+			                lote.valor = 0;
+			
+			            }else{
+			
+			                const percentualRetirado =
+			                    restante / lote.valor;
+			
+			                lote.valorInicial -=
+			                    lote.valorInicial *
+			                    percentualRetirado;
+			
+			                lote.valor -= restante;
+			
+			                restante = 0;
+			            }
+			        }
+			
+			        cofres[nome] =
+			            cofres[nome]
+			            .filter(x => x.valor > 0);
+			
+			    });
+			
+			}
         }
 
 		let saldoAtual = 0;
