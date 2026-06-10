@@ -871,14 +871,17 @@ function calcularSistema(){
 
 					}else{
 
-						const percentualRetirado =
-							restante / lote.valor;
-
-						lote.valorInicial -=
-							lote.valorInicial * percentualRetirado;
-
+						const valorAntes = lote.valor;
+						const principalAntes = lote.valorInicial;
+						
 						lote.valor -= restante;
-
+						
+						// reduz o principal na mesma proporção
+						// que sobrou após a retirada
+						lote.valorInicial =
+						    principalAntes *
+						    (lote.valor / valorAntes);
+						
 						restante = 0;
 					}
 
@@ -987,16 +990,18 @@ function calcularSistema(){
 			
 			            }else{
 			
-			                const percentualRetirado =
-			                    restante / lote.valor;
-			
-			                lote.valorInicial -=
-			                    lote.valorInicial *
-			                    percentualRetirado;
-			
-			                lote.valor -= restante;
-			
-			                restante = 0;
+							const valorAntes = lote.valor;
+							const principalAntes = lote.valorInicial;
+							
+							lote.valor -= restante;
+							
+							// reduz o principal na mesma proporção
+							// que sobrou após a retirada
+							lote.valorInicial =
+							    principalAntes *
+							    (lote.valor / valorAntes);
+							
+							restante = 0;
 			            }
 			        }
 			
