@@ -863,32 +863,32 @@ function calcularSistema(){
 
 					const lote = cofres[nome][i];
 
-					if(lote.valor <= restante){
+					const rendimento =
+					    lote.valor - lote.valorInicial;
 					
-					    restante -= lote.valor;
+					if(lote.valorInicial <= restante){
 					
-					    lote.valor = 0;
-
+					    restante -= lote.valorInicial;
+					
+					    lote.valor = rendimento;
+					
+					    lote.valorInicial = 0;
+					
 					}else{
-
-						const valorAntes = lote.valor;
-						const principalAntes = lote.valorInicial;
-						
-						lote.valor -= restante;
-						
-						// reduz o principal na mesma proporção
-						// que sobrou após a retirada
-						lote.valorInicial =
-						    principalAntes *
-						    (lote.valor / valorAntes);
-						
-						restante = 0;
+					
+					    lote.valor -= restante;
+					
+					    lote.valorInicial -= restante;
+					
+					    restante = 0;
 					}
 
 				}
 
-				cofres[nome] =
-					cofres[nome].filter(x => x.valor > 0);
+			cofres[nome] =
+			    cofres[nome].filter(
+			        x => x.valorInicial > 0 || x.valor > 0
+			    );
 
 			}
 
@@ -982,27 +982,25 @@ function calcularSistema(){
 			            const lote =
 			                cofres[nome][i];
 			
-			            if(lote.valor <= restante){
-			
-			                restante -= lote.valor;
-			
-			                lote.valor = 0;
-			
-			            }else{
-			
-							const valorAntes = lote.valor;
-							const principalAntes = lote.valorInicial;
-							
-							lote.valor -= restante;
-							
-							// reduz o principal na mesma proporção
-							// que sobrou após a retirada
-							lote.valorInicial =
-							    principalAntes *
-							    (lote.valor / valorAntes);
-							
-							restante = 0;
-			            }
+						const rendimento =
+						    lote.valor - lote.valorInicial;
+						
+						if(lote.valorInicial <= restante){
+						
+						    restante -= lote.valorInicial;
+						
+						    lote.valor = rendimento;
+						
+						    lote.valorInicial = 0;
+						
+						}else{
+						
+						    lote.valor -= restante;
+						
+						    lote.valorInicial -= restante;
+						
+						    restante = 0;
+						}
 			        }
 			
 			        cofres[nome] =
