@@ -1061,29 +1061,32 @@ function calcularSistema(){
 	let rendimentoCofres = {};
 
 	for(let nome in cofres){
-
-		const saldo =
-			cofres[nome]
-			.reduce((s,x)=>s+x.valor,0);
-
-		const investido =
-			cofres[nome]
-			.reduce((s,x)=>s+x.valorInicial,0);
-
+	
+	    const saldo =
+	        cofres[nome]
+	        .reduce((s,x)=>s+x.valor,0);
+	
+	    const investido =
+	        cofres[nome]
+	        .reduce((s,x)=>s+x.valorInicial,0);
+	
+	    const rendimento =
+	        saldo - investido;
+	
 	    console.log(
 	        obterNomeCofrinho(nome),
 	        "Saldo:", saldo.toFixed(2),
-	        "Principal:", principal.toFixed(2),
-	        "Rendimento:", (saldo-principal).toFixed(2)
+	        "Principal:", investido.toFixed(2),
+	        "Rendimento:", rendimento.toFixed(2)
 	    );
-        saldoCofres[nome] = saldo;
-
-        rendimentoCofres[nome] = rendimento;
-
-		saldoFinal = Number(
-			(saldoFinal + saldo).toFixed(2)
-		);
-
+	
+	    saldoCofres[nome] = saldo;
+	
+	    rendimentoCofres[nome] = rendimento;
+	
+	    saldoFinal = Number(
+	        (saldoFinal + saldo).toFixed(2)
+	    );
 	}
 
 	return {
