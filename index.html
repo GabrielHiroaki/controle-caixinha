@@ -1003,9 +1003,11 @@ function calcularSistema(){
 						}
 			        }
 			
-			        cofres[nome] =
-			            cofres[nome]
-			            .filter(x => x.valor > 0);
+				cofres[nome] =
+				    cofres[nome]
+				    .filter(
+				        x => x.valorInicial > 0 || x.valor > 0
+				    );
 			
 			    });
 			
