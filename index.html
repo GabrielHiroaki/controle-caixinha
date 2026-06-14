@@ -1070,6 +1070,12 @@ function calcularSistema(){
 			cofres[nome]
 			.reduce((s,x)=>s+x.valorInicial,0);
 
+	    console.log(
+	        obterNomeCofrinho(nome),
+	        "Saldo:", saldo.toFixed(2),
+	        "Principal:", principal.toFixed(2),
+	        "Rendimento:", (saldo-principal).toFixed(2)
+	    );
         saldoCofres[nome] = saldo;
 
         rendimentoCofres[nome] = rendimento;
