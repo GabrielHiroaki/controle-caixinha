@@ -1136,7 +1136,8 @@ function obterNomeCofrinho(id){
 function renderCofrinhos(calculo){
 
 	const lista =
-		Object.entries(calculo.saldoCofres || {});
+	    Object.entries(calculo.saldoCofres || {})
+	    .sort((a, b) => b[1] - a[1]); // Maior saldo primeiro
 
     const div =
         document.getElementById("listaCofrinhos");
