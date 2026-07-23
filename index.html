@@ -8,7 +8,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐷</text></svg>">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -2365,6 +2365,20 @@ async function gerarPDFResumo(){
         }
 
     });
+	// =====================
+	// NOVA PÁGINA
+	// =====================
+	
+	pdf.addPage();
+	
+	pdf.setFont("helvetica","bold");
+	pdf.setFontSize(18);
+	
+	pdf.text(
+	    "Rendimentos Mensais",
+	    15,
+	    18
+	);
 	// ======================
 	// GRÁFICO DE RENDIMENTOS MENSAIS
 	// ======================
@@ -2382,13 +2396,39 @@ async function gerarPDFResumo(){
 	    data:{
 	        labels:dadosGrafico.map(x=>x.mes),
 	
-	        datasets:[{
-	            label:"Rendimento Mensal",
-	
-	            data:dadosGrafico.map(x=>x.rendimento),
-	
-	            backgroundColor:"#22c55e"
-	        }]
+			datasets:[{
+			
+			    label:"Rendimento Mensal",
+			
+			    data:dadosGrafico.map(x=>x.rendimento),
+			
+			    backgroundColor:"#22c55e",
+			
+			    borderRadius:8,
+			
+			    datalabels:{
+			        anchor:"end",
+			        align:"top",
+			
+			        font:{
+			            size:12,
+			            weight:"bold"
+			        },
+			
+			        color:"#111",
+			
+			        formatter(valor){
+			            return valor.toLocaleString(
+			                "pt-BR",
+			                {
+			                    style:"currency",
+			                    currency:"BRL"
+			                }
+			            );
+			        }
+			    }
+			
+			}]
 	    },
 	
 	    options:{
@@ -2414,10 +2454,10 @@ async function gerarPDFResumo(){
 	pdf.addImage(
 	    img,
 	    "PNG",
-	    15,
-	    182,
-	    180,
-	    70
+	    12,
+	    28,
+	    186,
+	    145
 	);
     // =====================
     // RODAPÉ
