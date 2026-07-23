@@ -2079,7 +2079,49 @@ function mostrarPush(valor){
     sessionStorage.setItem("pushHoje","1");
 
 }
+function obterRendimentosMensais(){
 
+    const calculo = calcularSistema();
+
+    const historico = calculo.historicoSaldo;
+
+    const meses = {};
+
+    historico.forEach((dia,i)=>{
+
+        const data = new Date(dia.data+"T00:00:00");
+
+        const chave =
+            data.toLocaleDateString("pt-BR",{
+                month:"short",
+                year:"2-digit"
+            });
+
+        if(!meses[chave]){
+            meses[chave]={
+                primeiro:dia,
+                ultimo:dia
+            };
+        }
+
+        meses[chave].ultimo = dia;
+
+    });
+
+    return Object.entries(meses).map(([mes,val])=>{
+
+        const rendimento =
+            val.ultimo.lucro -
+            val.primeiro.lucro;
+
+        return{
+            mes,
+            rendimento:Number(rendimento.toFixed(2))
+        };
+
+    });
+
+}
 async function gerarPDFResumo(){
 
     const btnPdf = document.getElementById("btnPdf");
@@ -2323,166 +2365,60 @@ async function gerarPDFResumo(){
         }
 
     });
+	// ======================
+	// GRÁFICO DE RENDIMENTOS MENSAIS
+	// ======================
+	
+	const canvas = document.createElement("canvas");
+	canvas.width = 900;
+	canvas.height = 300;
+	
+	const ctx = canvas.getContext("2d");
+	const dadosGrafico = obterRendimentosMensais();
+	
+	new Chart(ctx,{
+	    type:"bar",
+	
+	    data:{
+	        labels:dadosGrafico.map(x=>x.mes),
+	
+	        datasets:[{
+	            label:"Rendimento Mensal",
+	
+	            data:dadosGrafico.map(x=>x.rendimento),
+	
+	            backgroundColor:"#22c55e"
+	        }]
+	    },
+	
+	    options:{
+	        responsive:false,
+	
+	        plugins:{
+	            legend:{
+	                display:false
+	            }
+	        },
+	
+	        scales:{
+	            y:{
+	                beginAtZero:true
+	            }
+	        }
+	    }
+	});
+	await new Promise(r=>setTimeout(r,300));
 
-    pdf.addPage();
-
-    titulo(
-        "Resumo Inteligente",
-        20
-    );
-
-    pdf.setFontSize(11);
-
-    const melhorCofre =
-        Object.entries(
-            calculo.saldoCofres || {}
-        )
-        .sort(
-            (a,b)=>b[1]-a[1]
-        )[0];
-
-    const mediaRendimento =
-        calculo.totalRendimentos /
-        Math.max(
-            calculo.historicoSaldo.length,
-            1
-        );
-
-    const insights = [
-
-        `• Patrimônio atual: ${formatar(calculo.saldo)}`,
-
-        `• Crescimento líquido do mês: ${formatar(estatisticas.crescimentoLiquido)}`,
-
-        `• Total depositado: ${formatar(totalEntradas)}`,
-
-        `• Total retirado: ${formatar(totalSaidas)}`,
-
-        `• Média diária de rendimento: ${formatar(mediaRendimento)}`,
-
-        `• Melhor cofrinho: ${
-            melhorCofre
-            ?
-            obterNomeCofrinho(
-                melhorCofre[0]
-            )
-            :
-            "-"
-        }`
-
-    ];
-
-    let posY = 35;
-
-    insights.forEach(txt=>{
-
-        card(
-            15,
-            posY-7,
-            180,
-            14,
-            [248,250,252]
-        );
-
-        pdf.text(
-            txt,
-            20,
-            posY
-        );
-
-        posY += 18;
-    });
-
-    // =====================
-    // HISTÓRICO
-    // =====================
-
-
-    titulo(
-        "Últimas Movimentações",
-        155
-    );
-
-    posY = 170;
-
-    ultimos.forEach(item=>{
-
-        if(posY > 270){
-
-            pdf.addPage();
-
-            posY = 20;
-        }
-
-        const entrada =
-            item.tipo==="entrada";
-
-        card(
-            15,
-            posY-8,
-            180,
-            18,
-            [248,250,252]
-        );
-
-        pdf.setTextColor(
-            100,116,139
-        );
-
-        pdf.setFontSize(9);
-
-        pdf.text(
-            formatarData(item.data),
-            20,
-            posY
-        );
-
-        pdf.setTextColor(
-            15,23,42
-        );
-
-        pdf.setFontSize(11);
-
-        pdf.text(
-            item.descricao
-            .substring(0,35),
-            50,
-            posY
-        );
-
-        pdf.setTextColor(
-            ...(entrada
-            ? [22,163,74]
-            : [220,38,38])
-        );
-
-        pdf.text(
-            entrada
-            ? "DEPÓSITO"
-            : "RETIRADA",
-            130,
-            posY
-        );
-
-        pdf.setFont(
-            "helvetica",
-            "bold"
-        );
-
-        pdf.text(
-            (entrada?"+":"-")
-            +
-            formatar(item.valor),
-            175,
-            posY,
-            {
-                align:"right"
-            }
-        );
-
-        posY += 20;
-    });
-
+	const img = canvas.toDataURL("image/png");
+	
+	pdf.addImage(
+	    img,
+	    "PNG",
+	    15,
+	    182,
+	    180,
+	    70
+	);
     // =====================
     // RODAPÉ
     // =====================
