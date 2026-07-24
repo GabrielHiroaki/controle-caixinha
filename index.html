@@ -838,6 +838,13 @@ const app = initializeApp(firebaseConfig);
 
 const db = getFirestore(app);
 
+// Plugin de rótulos (valores) nos gráficos — registrado uma única vez.
+// Fica desligado por padrão e é ligado explicitamente no gráfico que precisa dele.
+if(window.ChartDataLabels){
+    Chart.register(window.ChartDataLabels);
+    Chart.defaults.set("plugins.datalabels",{ display:false });
+}
+
 
 function obterTaxaDoDia(data){
 
@@ -2098,8 +2105,14 @@ function obterRendimentosMensais(){
             });
 
         if(!meses[chave]){
+
+            // referência = último dia ANTES do mês começar
+            // (mesma lógica do card "Estatísticas do Mês"),
+            // assim o rendimento do 1º dia do mês não fica de fora
+            const anterior = historico[i-1];
+
             meses[chave]={
-                primeiro:dia,
+                lucroInicial: anterior ? anterior.lucro : 0,
                 ultimo:dia
             };
         }
@@ -2112,7 +2125,7 @@ function obterRendimentosMensais(){
 
         const rendimento =
             val.ultimo.lucro -
-            val.primeiro.lucro;
+            val.lucroInicial;
 
         return{
             mes,
@@ -2382,67 +2395,123 @@ async function gerarPDFResumo(){
 	// ======================
 	// GRÁFICO DE RENDIMENTOS MENSAIS
 	// ======================
-	
-	const canvas = document.createElement("canvas");
-	canvas.width = 900;
-	canvas.height = 300;
-	
-	const ctx = canvas.getContext("2d");
+
 	const dadosGrafico = obterRendimentosMensais();
-	
+
+	// canvas em alta resolução, na MESMA proporção do espaço
+	// reservado no PDF (186 x 130mm) — evita o gráfico esticado/deformado
+	const larguraPdf = 186;
+	const alturaPdf = 130;
+	const escala = 6; // px por mm, para ficar nítido na impressão
+
+	const canvas = document.createElement("canvas");
+	canvas.width = larguraPdf * escala;
+	canvas.height = alturaPdf * escala;
+
+	const ctx = canvas.getContext("2d");
+
+	// fundo branco explícito (o PDF é branco; sem isso o PNG fica transparente)
+	ctx.fillStyle = "#ffffff";
+	ctx.fillRect(0,0,canvas.width,canvas.height);
+
+	// gradiente verde para as barras, no mesmo tom do restante do relatório
+	const gradienteBarra = ctx.createLinearGradient(0,0,0,canvas.height);
+	gradienteBarra.addColorStop(0,"#4ade80");
+	gradienteBarra.addColorStop(1,"#16a34a");
+
 	new Chart(ctx,{
 	    type:"bar",
-	
+
 	    data:{
 	        labels:dadosGrafico.map(x=>x.mes),
-	
+
 			datasets:[{
-			
+
 			    label:"Rendimento Mensal",
-			
+
 			    data:dadosGrafico.map(x=>x.rendimento),
-			
-			    backgroundColor:"#22c55e",
-			
-			    borderRadius:8,
-			
+
+			    backgroundColor:gradienteBarra,
+
+			    borderRadius:{ topLeft:8, topRight:8 },
+			    borderSkipped:false,
+
+			    maxBarThickness:60,
+
 			    datalabels:{
+			        display:true,
 			        anchor:"end",
 			        align:"top",
-			
+			        offset:4,
+
 			        font:{
-			            size:12,
-			            weight:"bold"
+			            size:22,
+			            weight:"bold",
+			            family:"Helvetica"
 			        },
-			
-			        color:"#111",
-			
+
+			        color:"#166534",
+
 			        formatter(valor){
 			            return valor.toLocaleString(
 			                "pt-BR",
 			                {
 			                    style:"currency",
-			                    currency:"BRL"
+			                    currency:"BRL",
+			                    maximumFractionDigits:0
 			                }
 			            );
 			        }
 			    }
-			
+
 			}]
 	    },
-	
+
 	    options:{
 	        responsive:false,
-	
+	        devicePixelRatio:1,
+
+	        layout:{
+	            padding:{ top:36, right:12, left:6, bottom:4 }
+	        },
+
 	        plugins:{
 	            legend:{
 	                display:false
+	            },
+	            datalabels:{
+	                display:true
 	            }
 	        },
-	
+
 	        scales:{
+	            x:{
+	                grid:{ display:false },
+	                border:{ color:"#cbd5e1" },
+	                ticks:{
+	                    color:"#334155",
+	                    font:{ size:20, family:"Helvetica" }
+	                }
+	            },
 	            y:{
-	                beginAtZero:true
+	                beginAtZero:true,
+	                grace:"18%",
+	                border:{ display:false },
+	                grid:{ color:"#e2e8f0" },
+	                ticks:{
+	                    color:"#64748b",
+	                    font:{ size:16, family:"Helvetica" },
+	                    callback:function(valor){
+	                        return valor.toLocaleString(
+	                            "pt-BR",
+	                            {
+	                                style:"currency",
+	                                currency:"BRL",
+	                                maximumFractionDigits:0
+	                            }
+	                        );
+	                    }
+	                }
 	            }
 	        }
 	    }
@@ -2450,14 +2519,14 @@ async function gerarPDFResumo(){
 	await new Promise(r=>setTimeout(r,300));
 
 	const img = canvas.toDataURL("image/png");
-	
+
 	pdf.addImage(
 	    img,
 	    "PNG",
 	    12,
 	    28,
-	    186,
-	    145
+	    larguraPdf,
+	    alturaPdf
 	);
     // =====================
     // RODAPÉ
