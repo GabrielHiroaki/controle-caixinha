@@ -59,7 +59,6 @@ body{
         radial-gradient(circle at 12% -10%, rgba(47,228,172,0.10), transparent 45%),
         radial-gradient(circle at 100% 0%, rgba(91,157,249,0.08), transparent 40%),
         linear-gradient(180deg,var(--bg-0),var(--bg-1) 40%,var(--bg-2));
-    background-attachment:fixed;
     color:var(--text-0);
     padding:28px 20px 60px;
     -webkit-font-smoothing:antialiased;
@@ -137,8 +136,8 @@ h3{
 
 .card{
     background:var(--surface);
-    backdrop-filter:blur(14px);
-    -webkit-backdrop-filter:blur(14px);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
     border:1px solid var(--border);
     border-radius:var(--radius-lg);
     padding:22px;
@@ -300,13 +299,12 @@ button:disabled{
 
 .top-card{
     position:relative;
-    background:var(--surface-2);
-    backdrop-filter:blur(10px);
+    background:#1c2436;
     border:1px solid var(--border-soft);
     border-left:3px solid var(--accent,var(--mint));
     padding:18px 20px;
     border-radius:var(--radius-md);
-    transition:.22s ease;
+    transition:transform .18s ease, box-shadow .18s ease;
 }
 
 .top-card:hover{
@@ -866,6 +864,10 @@ function obterTaxaDoDia(data){
 
 let grafico;
 
+// guarda o último resultado de calcularSistema() para os botões de período
+// (7D/30D/90D/1A/TUDO) não precisarem refazer todo o cálculo do zero a cada clique
+let ultimoCalculo = null;
+
 let dados = {
     lancamentos:[],
     cofrinhos:[]
@@ -875,17 +877,23 @@ function renderSelectCofrinhos(){
     const select =
         document.getElementById("cofrinho");
 
-    select.innerHTML = "";
+    const valorSelecionado = select.value;
 
-    dados.cofrinhos.forEach(cofre=>{
-
-        select.innerHTML += `
+    const opcoes = dados.cofrinhos.map(cofre => `
             <option value="${cofre.firestoreId}">
                 ${cofre.nome}
             </option>
-        `;
+        `);
 
-    });
+    select.innerHTML = opcoes.join("");
+
+    // mantém o cofrinho que já estava selecionado, se ainda existir
+    if(
+        valorSelecionado &&
+        dados.cofrinhos.some(c => c.firestoreId === valorSelecionado)
+    ){
+        select.value = valorSelecionado;
+    }
 
 }
 async function carregarCofrinhos(){
@@ -908,12 +916,19 @@ async function carregarCofrinhos(){
 }
 async function criarCofrinho(nome){
 
-    await addDoc(collection(db, "cofrinhos"),{
+    const novoDoc = await addDoc(collection(db, "cofrinhos"),{
         nome,
         criadoEm:new Date().toISOString()
     });
 
-    await carregarCofrinhos();
+    // atualiza local em vez de baixar a coleção inteira de novo
+    dados.cofrinhos.push({
+        firestoreId: novoDoc.id,
+        nome,
+        criadoEm:new Date().toISOString()
+    });
+
+    renderSelectCofrinhos();
 }
 async function criarNovoCofrinho(){
 
@@ -1050,17 +1065,31 @@ async function adicionarLancamento(){
 		return;
 	}
 
-    await addDoc(collection(db, "lancamentos"),{
-        id: Date.now(),
+    const novoId = Date.now();
+
+    const novoDoc = await addDoc(collection(db, "lancamentos"),{
+        id: novoId,
         tipo,
         valor,
         descricao,
         cofrinhoId,
         data
     });
+
+    // atualiza local em vez de baixar a coleção inteira de novo
+    dados.lancamentos.push({
+        firestoreId: novoDoc.id,
+        id: novoId,
+        tipo,
+        valor,
+        descricao,
+        cofrinhoId,
+        data
+    });
+
 	document.getElementById("valor").value = "";
 	document.getElementById("descricao").value = "";
-    carregarFirestore();
+    atualizarTudo();
 }
 async function excluir(firestoreId){
 
@@ -1068,7 +1097,13 @@ async function excluir(firestoreId){
         doc(db, "lancamentos", firestoreId)
     );
 
-    carregarFirestore();
+    // remove local em vez de baixar a coleção inteira de novo
+    dados.lancamentos =
+        dados.lancamentos.filter(
+            x => x.firestoreId !== firestoreId
+        );
+
+    atualizarTudo();
 }
 window.adicionarLancamento = adicionarLancamento;
 window.excluir = excluir;
@@ -1471,12 +1506,12 @@ function renderCofrinhos(calculo){
         return;
     }
 
-    lista.forEach(([nome,saldo])=>{
+    const html = lista.map(([nome,saldo])=>{
 
         const rendimento =
             calculo.rendimentoCofres?.[nome] || 0;
 
-        div.innerHTML += `
+        return `
 
         <div class="top-card">
 
@@ -1500,6 +1535,8 @@ function renderCofrinhos(calculo){
         `;
 
     });
+
+    div.innerHTML = html.join("");
 
 }
 function calcularEstatisticasMes(calculo){
@@ -1601,6 +1638,8 @@ function calcularEstatisticasMes(calculo){
 function atualizarTudo(){
 
     const calculo = calcularSistema();
+
+    ultimoCalculo = calculo;
 
 	const estatisticas =
 		calcularEstatisticasMes(calculo);
@@ -1727,6 +1766,8 @@ function renderHistorico(){
 
     });
 
+    const partes = [];
+
     Object.entries(grupos).forEach(([mes,itens])=>{
 
         const totalMes = itens.reduce((s,item)=>{
@@ -1738,7 +1779,7 @@ function renderHistorico(){
 
         },0);
 
-        tbody.innerHTML += `
+        partes.push(`
             <tr style="
                 background:#1e293b;
                 cursor:pointer;
@@ -1761,11 +1802,11 @@ function renderHistorico(){
             </tr>
 
             <tbody id="mes-${mes.replace(/\s/g,'-')}">
-        `;
+        `);
 
         itens.forEach(item=>{
 
-            tbody.innerHTML += `
+            partes.push(`
 
             <tr class="mes-${mes.replace(/\s/g,'-')}">
 
@@ -1806,11 +1847,13 @@ function renderHistorico(){
 
             </tr>
 
-            `;
+            `);
 
         });
 
     });
+
+    tbody.innerHTML = partes.join("");
 
     document.querySelectorAll(
         '[class^="mes-"]'
@@ -1861,7 +1904,10 @@ function alterarPeriodo(dias){
 			);
 		});
 
-	const calculo = calcularSistema();
+	// reaproveita o último cálculo já feito (os dados não mudaram,
+	// só a janela de dias exibida no gráfico) — evita refazer a
+	// simulação dia a dia inteira a cada clique
+	const calculo = ultimoCalculo || calcularSistema();
 
 	renderGrafico(calculo.historicoSaldo);
 
