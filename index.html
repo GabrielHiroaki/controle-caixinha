@@ -862,6 +862,44 @@ function obterTaxaDoDia(data){
     return base + variacao;
 }
 
+// ===== Faixas de rendimento =====
+// Considerando a SOMA de todos os cofrinhos:
+// até R$10.000 rende a taxa "cheia" (a mesma que já vinha sendo
+// usada e que estava batendo com o rendimento real do Mercado Pago)
+// o que passar de R$10.000 rende na proporção real entre as faixas
+// (105% / 120% = ~87,5% da taxa cheia)
+const LIMITE_FAIXA_1 = 10000;
+const RAZAO_FAIXA_2 = 105 / 120;
+
+// a partir de qual data a regra de faixas passa a valer.
+// como o app recalcula o histórico inteiro toda vez, sem essa data
+// de corte os dias JÁ PASSADOS também seriam re-rendidos com a
+// regra nova — mudando valores que já estavam fechados.
+// ajuste essa data se quiser mudar quando a regra começa a valer.
+const DATA_INICIO_FAIXAS = "2026-07-31";
+
+function obterTaxaEfetiva(saldoTotal, taxaBase){
+
+    if(saldoTotal <= 0){
+        return taxaBase;
+    }
+
+    const dentroFaixa1 =
+        Math.min(saldoTotal, LIMITE_FAIXA_1);
+
+    const acimaFaixa1 =
+        Math.max(saldoTotal - LIMITE_FAIXA_1, 0);
+
+    const rendimentoTotal =
+        (dentroFaixa1 * taxaBase) +
+        (acimaFaixa1 * taxaBase * RAZAO_FAIXA_2);
+
+    // taxa média ponderada, aplicada igualmente a cada real
+    // (todo mundo cresce na mesma proporção, sem precisar decidir
+    // "quais reais" pertencem a qual faixa)
+    return rendimentoTotal / saldoTotal;
+}
+
 let grafico;
 
 // guarda o último resultado de calcularSistema() para os botões de período
@@ -1259,6 +1297,23 @@ function calcularSistema(){
 
             let rendimentoDia = 0;
 
+			// saldo total somando TODOS os cofrinhos, antes do
+			// rendimento de hoje — é essa soma que decide a faixa
+			let saldoTotalAntes = 0;
+
+			for(let nome in cofres){
+				saldoTotalAntes +=
+					cofres[nome].reduce((s,x)=>s+x.valor,0);
+			}
+
+			const taxaBaseHoje =
+				obterTaxaDoDia(dataAtual);
+
+			const taxaEfetivaHoje =
+				dataAtual >= DATA_INICIO_FAIXAS
+				? obterTaxaEfetiva(saldoTotalAntes, taxaBaseHoje)
+				: taxaBaseHoje;
+
 			for(let nome in cofres){
 
 				for(let lote of cofres[nome]){
@@ -1276,11 +1331,8 @@ function calcularSistema(){
                         (d - dataEntrada) / 86400000
                     );
 
-                const taxaHoje =
-                    obterTaxaDoDia(dataAtual);
-
                 const rendimentoBruto =
-                    lote.valor * taxaHoje;
+                    lote.valor * taxaEfetivaHoje;
 
                 const aliquota =
                     obterAliquotaIR(diasInvestidos);
@@ -1458,11 +1510,14 @@ function preverSaldo(saldo,dias){
             const dataAtual =
                 data.toISOString().split("T")[0];
 
-            const taxaHoje =
+            const taxaBaseHoje =
                 obterTaxaDoDia(dataAtual);
 
+            const taxaEfetivaHoje =
+                obterTaxaEfetiva(valor, taxaBaseHoje);
+
             const rendimentoBruto =
-                valor * taxaHoje;
+                valor * taxaEfetivaHoje;
 
             // simulação IR
 			const rendimentoLiquido =
