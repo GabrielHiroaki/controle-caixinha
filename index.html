@@ -867,9 +867,9 @@ function obterTaxaDoDia(data){
 // até R$10.000 rende a taxa "cheia" (a mesma que já vinha sendo
 // usada e que estava batendo com o rendimento real do Mercado Pago)
 // o que passar de R$10.000 rende na proporção real entre as faixas
-// (105% / 120% = ~87,5% da taxa cheia)
+// (100% / 120% = ~83,3% da taxa cheia)
 const LIMITE_FAIXA_1 = 10000;
-const RAZAO_FAIXA_2 = 105 / 120;
+const RAZAO_FAIXA_2 = 100 / 120;
 
 // a partir de qual data a regra de faixas passa a valer.
 // como o app recalcula o histórico inteiro toda vez, sem essa data
