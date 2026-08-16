@@ -11,7 +11,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
 
@@ -20,26 +20,28 @@
     --bg-1:#0a0f1a;
     --bg-2:#0e1526;
 
-    --surface:rgba(18,25,41,0.68);
-    --surface-2:rgba(32,42,64,0.55);
-    --border:rgba(255,255,255,0.07);
+    --surface:#131a29;
+    --surface-soft:#1a2233;
+    --border:rgba(255,255,255,0.08);
     --border-soft:rgba(255,255,255,0.05);
 
-    --mint:#2fe4ac;
-    --mint-deep:#14b886;
-    --blue:#5b9df9;
+    --mint:#00e0a0;
+    --mint-deep:#00b884;
+    --blue:#3f9dff;
+    --blue-deep:#0074e4;
     --red:#ff6b7a;
-    --gold:#f4bf5a;
+    --gold:#ffc65c;
 
-    --text-0:#f5f7fb;
-    --text-1:#aeb9cf;
-    --text-2:#7d8aa3;
+    --text-0:#f4f7fc;
+    --text-1:#a3aec4;
+    --text-2:#707d96;
 
-    --radius-lg:22px;
-    --radius-md:14px;
-    --radius-sm:10px;
+    --radius-lg:24px;
+    --radius-md:16px;
+    --radius-sm:12px;
 
-    --shadow-card:0 10px 34px rgba(0,0,0,0.4);
+    --shadow-card:0 10px 28px rgba(0,0,0,0.35);
+    --shadow-card-hover:0 16px 34px rgba(0,0,0,0.45);
 }
 
 *{
@@ -50,22 +52,22 @@
 }
 
 ::selection{
-    background:var(--mint);
-    color:#04140f;
+    background:var(--blue);
+    color:#fff;
 }
 
 body{
     background:
-        radial-gradient(circle at 12% -10%, rgba(47,228,172,0.10), transparent 45%),
-        radial-gradient(circle at 100% 0%, rgba(91,157,249,0.08), transparent 40%),
-        linear-gradient(180deg,var(--bg-0),var(--bg-1) 40%,var(--bg-2));
+        radial-gradient(circle at 15% -10%, rgba(63,157,255,0.12), transparent 45%),
+        radial-gradient(circle at 100% 5%, rgba(0,224,160,0.10), transparent 40%),
+        linear-gradient(180deg,var(--bg-0),var(--bg-1) 45%,var(--bg-2));
     color:var(--text-0);
     padding:28px 20px 60px;
     -webkit-font-smoothing:antialiased;
 }
 
 .container{
-    max-width:1320px;
+    max-width:1180px;
     margin:auto;
 }
 
@@ -85,12 +87,13 @@ body{
     gap:7px;
     padding:6px 14px;
     border-radius:999px;
-    background:var(--surface-2);
-    border:1px solid var(--border);
+    background:rgba(63,157,255,0.12);
+    border:1px solid rgba(63,157,255,0.25);
     font-size:12px;
-    letter-spacing:.08em;
-    color:var(--text-1);
+    letter-spacing:.06em;
+    color:#8ec3ff;
     text-transform:uppercase;
+    font-weight:600;
 }
 
 .brand-badge .dot{
@@ -98,57 +101,56 @@ body{
     height:7px;
     border-radius:50%;
     background:var(--mint);
-    box-shadow:0 0 0 3px rgba(47,228,172,0.18);
+    box-shadow:0 0 0 3px rgba(0,224,160,0.22);
     animation:pulse 2.4s ease-in-out infinite;
 }
 
 @keyframes pulse{
     0%,100%{opacity:1;}
-    50%{opacity:.45;}
+    50%{opacity:.4;}
 }
 
 h1{
     text-align:center;
-    margin-bottom:30px;
-    font-family:"Space Grotesk",sans-serif;
+    margin-bottom:26px;
+    font-family:"Poppins",sans-serif;
     font-weight:700;
-    font-size:32px;
+    font-size:28px;
     letter-spacing:-0.01em;
+    color:var(--text-0);
 }
 
 h2{
-    font-family:"Space Grotesk",sans-serif;
+    font-family:"Poppins",sans-serif;
     font-weight:600;
-    font-size:19px;
+    font-size:18px;
     letter-spacing:-0.01em;
+    color:var(--text-0);
 }
 
 h3{
     font-family:"Inter",sans-serif;
     font-weight:600;
-    font-size:13px;
+    font-size:12.5px;
     letter-spacing:.02em;
     color:var(--text-1);
-    text-transform:uppercase;
 }
 
 /* ===== Cards ===== */
 
 .card{
     background:var(--surface);
-    backdrop-filter:blur(8px);
-    -webkit-backdrop-filter:blur(8px);
     border:1px solid var(--border);
     border-radius:var(--radius-lg);
     padding:22px;
-    margin-bottom:20px;
+    margin-bottom:18px;
     box-shadow:var(--shadow-card);
 }
 
 .grid{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:15px;
+    gap:14px;
 }
 
 label{
@@ -157,17 +159,17 @@ label{
     font-weight:600;
     color:var(--text-2);
     text-transform:uppercase;
-    letter-spacing:.04em;
+    letter-spacing:.03em;
     margin-bottom:6px;
 }
 
 input,select{
     width:100%;
     padding:12px 14px;
-    border:1px solid var(--border);
+    border:1.5px solid var(--border);
     border-radius:var(--radius-sm);
     font-size:15px;
-    background:rgba(8,12,22,0.6);
+    background:var(--surface-soft);
     color:var(--text-0);
     transition:.15s ease;
     font-family:"Inter",sans-serif;
@@ -179,30 +181,31 @@ input::placeholder{
 
 input:focus,select:focus{
     outline:none;
-    border-color:var(--mint);
-    box-shadow:0 0 0 3px rgba(47,228,172,0.15);
+    border-color:var(--blue);
+    background:#1e2740;
+    box-shadow:0 0 0 4px rgba(63,157,255,0.16);
 }
 
 button{
     border:none;
-    border-radius:var(--radius-sm);
+    border-radius:999px;
     font-size:14px;
     font-family:"Inter",sans-serif;
 }
 
 button{
-    background:var(--surface-2);
+    background:var(--surface-soft);
     color:var(--text-0);
-    padding:11px 18px;
+    padding:11px 20px;
     font-weight:600;
     cursor:pointer;
     transition:.18s ease;
-    border:1px solid var(--border);
+    border:1.5px solid var(--border);
     width:auto;
 }
 
 button:hover{
-    background:rgba(48,60,86,0.7);
+    background:#232c42;
     transform:translateY(-1px);
 }
 
@@ -213,7 +216,7 @@ button:active{
 button:focus-visible,
 input:focus-visible,
 select:focus-visible{
-    outline:2px solid var(--mint);
+    outline:2px solid var(--blue);
     outline-offset:2px;
 }
 
@@ -224,62 +227,117 @@ button:disabled{
 }
 
 .btn-primary{
-    background:linear-gradient(135deg,var(--mint),var(--mint-deep));
-    color:#06251b;
-    box-shadow:0 8px 22px rgba(47,228,172,0.28);
+    background:linear-gradient(135deg,var(--blue),var(--blue-deep));
+    color:#fff;
+    border:none;
+    box-shadow:0 8px 20px rgba(63,157,255,0.32);
     font-weight:700;
 }
 
 .btn-primary:hover{
-    filter:brightness(1.06);
-    box-shadow:0 10px 26px rgba(47,228,172,0.38);
+    filter:brightness(1.1);
+    box-shadow:0 10px 26px rgba(63,157,255,0.4);
 }
 
 .btn-block{
     width:100%;
     padding:14px;
     font-size:15px;
+    border-radius:var(--radius-sm);
 }
 
-/* ===== Saldo ===== */
+/* ===== Saldo — cartão estilo bancário ===== */
 
 .saldo-card{
     position:relative;
     overflow:hidden;
-    text-align:center;
-    padding:32px 20px;
+    padding:28px 26px;
+    background:linear-gradient(120deg,#00286b 0%,#0074e4 45%,#00c48c 130%);
+    border:none;
+    color:#fff;
+    box-shadow:0 18px 40px rgba(0,60,140,0.4);
 }
 
 .saldo-card::before{
     content:"";
     position:absolute;
-    inset:-40% -10% auto -10%;
-    height:220px;
-    background:radial-gradient(ellipse at center, rgba(47,228,172,0.22), transparent 70%);
+    inset:0;
+    background-image:radial-gradient(rgba(255,255,255,0.14) 1.6px, transparent 1.6px);
+    background-size:18px 18px;
+    opacity:.5;
     pointer-events:none;
+}
+
+.saldo-card::after{
+    content:"";
+    position:absolute;
+    right:-60px;
+    top:-60px;
+    width:240px;
+    height:240px;
+    border-radius:50%;
+    background:radial-gradient(circle, rgba(255,255,255,0.16), transparent 70%);
+    pointer-events:none;
+}
+
+.saldo-card h2{
+    color:rgba(255,255,255,0.92);
+    position:relative;
+}
+
+.saldo-topo{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+}
+
+.btn-olho{
+    position:relative;
+    background:rgba(255,255,255,0.14);
+    border:1px solid rgba(255,255,255,0.22);
+    color:#fff;
+    width:32px;
+    height:32px;
+    min-width:32px;
+    padding:0;
+    border-radius:50%;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-size:14px;
+}
+
+.btn-olho:hover{
+    background:rgba(255,255,255,0.24);
+    transform:none;
 }
 
 .saldo-eyebrow{
     position:relative;
     font-size:12px;
     font-weight:600;
-    letter-spacing:.1em;
+    letter-spacing:.08em;
     text-transform:uppercase;
-    color:var(--text-2);
+    color:rgba(255,255,255,0.72);
 }
 
 .saldo{
     position:relative;
-    font-family:"Space Grotesk",sans-serif;
+    font-family:"Poppins",sans-serif;
     font-variant-numeric:tabular-nums;
-    font-size:52px;
-    background:linear-gradient(135deg,#7cf5ce,var(--mint) 55%,var(--mint-deep));
-    -webkit-background-clip:text;
-    background-clip:text;
-    color:transparent;
+    font-size:44px;
+    color:#fff;
     font-weight:700;
     margin-top:6px;
-    line-height:1.1;
+    line-height:1.15;
+    transition:filter .15s ease;
+}
+
+.saldo.oculto{
+    filter:blur(11px);
+    user-select:none;
 }
 
 .info{
@@ -289,41 +347,57 @@ button:disabled{
     position:relative;
 }
 
+.saldo-card .info{
+    color:rgba(255,255,255,0.85);
+}
+
 /* ===== Top stat cards ===== */
 
 .cards-top{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-    gap:15px;
+    grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+    gap:14px;
 }
 
 .top-card{
     position:relative;
-    background:#1c2436;
-    border:1px solid var(--border-soft);
-    border-left:3px solid var(--accent,var(--mint));
+    background:var(--surface);
+    border:1px solid var(--border);
     padding:18px 20px;
     border-radius:var(--radius-md);
-    transition:transform .18s ease, box-shadow .18s ease;
+    box-shadow:var(--shadow-card);
+    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
 }
 
 .top-card:hover{
     transform:translateY(-3px);
-    border-color:var(--border);
-    box-shadow:0 14px 26px rgba(0,0,0,0.3);
+    box-shadow:var(--shadow-card-hover);
+    border-color:rgba(255,255,255,0.16);
 }
 
 .top-card h3{
-    margin-bottom:10px;
+    margin-bottom:12px;
     display:flex;
     align-items:center;
-    gap:6px;
+    gap:8px;
+}
+
+.icone-card{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:30px;
+    height:30px;
+    border-radius:10px;
+    font-size:15px;
+    background:var(--accent-bg,rgba(63,157,255,0.14));
+    flex-shrink:0;
 }
 
 .top-card .valor{
-    font-family:"Space Grotesk",sans-serif;
+    font-family:"Poppins",sans-serif;
     font-variant-numeric:tabular-nums;
-    font-size:26px;
+    font-size:23px;
     font-weight:700;
     color:var(--text-0);
 }
@@ -342,15 +416,15 @@ button:disabled{
     padding:8px 16px;
     border-radius:999px;
     font-size:13px;
-    background:transparent;
-    border:1px solid var(--border);
+    background:var(--surface-soft);
+    border:1.5px solid var(--border);
     color:var(--text-1);
 }
 
 .periodos-grafico button.ativo{
-    background:linear-gradient(135deg,var(--mint),var(--mint-deep));
+    background:linear-gradient(135deg,var(--blue),var(--blue-deep));
     border-color:transparent;
-    color:#06251b;
+    color:#fff;
     font-weight:700;
 }
 
@@ -363,12 +437,12 @@ button:disabled{
 table{
     width:100%;
     border-collapse:collapse;
-    margin-top:10px;
+    margin-top:8px;
     font-size:14px;
 }
 
 th,td{
-    padding:13px 12px;
+    padding:14px 12px;
     border-bottom:1px solid var(--border-soft);
     text-align:left;
     white-space:nowrap;
@@ -383,36 +457,37 @@ th{
     color:var(--text-2);
     font-size:11px;
     text-transform:uppercase;
-    letter-spacing:.06em;
-    font-weight:600;
+    letter-spacing:.05em;
+    font-weight:700;
     border-bottom:1px solid var(--border);
 }
 
 tbody tr:not([style]):hover{
-    background:rgba(255,255,255,0.025);
+    background:rgba(255,255,255,0.03);
 }
 
 .entrada{
     color:var(--mint);
-    font-weight:600;
+    font-weight:700;
 }
 
 .saida{
     color:var(--red);
-    font-weight:600;
+    font-weight:700;
 }
 
 .badge-tipo{
     display:inline-flex;
     align-items:center;
-    padding:3px 10px;
+    gap:5px;
+    padding:4px 11px;
     border-radius:999px;
     font-size:12px;
     font-weight:700;
 }
 
 .badge-tipo.entrada{
-    background:rgba(47,228,172,0.14);
+    background:rgba(0,224,160,0.14);
     color:var(--mint);
 }
 
@@ -422,15 +497,15 @@ tbody tr:not([style]):hover{
 }
 
 button.excluir{
-    background:rgba(255,107,122,0.12);
+    background:rgba(255,107,122,0.1);
     color:var(--red);
-    border:1px solid rgba(255,107,122,0.25);
-    padding:8px 12px;
+    border:1.5px solid rgba(255,107,122,0.25);
+    padding:8px 14px;
     font-size:13px;
 }
 
 button.excluir:hover{
-    background:rgba(255,107,122,0.22);
+    background:rgba(255,107,122,0.2);
 }
 
 .empty-state{
@@ -453,12 +528,12 @@ button.excluir:hover{
     top:20px;
     right:20px;
     background:linear-gradient(135deg,var(--mint),var(--mint-deep));
-    color:#06251b;
+    color:#04140f;
     padding:18px 20px;
     border-radius:16px;
     font-weight:700;
     z-index:999;
-    box-shadow:0 14px 30px rgba(0,0,0,0.4);
+    box-shadow:0 14px 30px rgba(0,0,0,0.5);
     animation:fade 0.4s;
     max-width:280px;
 }
@@ -504,7 +579,7 @@ button.excluir:hover{
     height:34px;
     border-radius:50%;
     border:3px solid var(--border);
-    border-top-color:var(--mint);
+    border-top-color:var(--blue);
     animation:girar 0.8s linear infinite;
 }
 
@@ -534,11 +609,11 @@ footer.rodape{
 @media(max-width:700px){
 
     h1{
-        font-size:25px;
+        font-size:23px;
     }
 
     .saldo{
-        font-size:36px;
+        font-size:34px;
     }
 
     .card{
@@ -575,14 +650,17 @@ footer.rodape{
 <div class="container">
 
     <div class="brand">
-        <span class="brand-badge"><span class="dot"></span> Rendimento diário · PRO</span>
+        <span class="brand-badge"><span class="dot"></span> Rendimento diário</span>
     </div>
 
-    <h1>🐷 Cofrinho — Mercado Pago</h1>
+    <h1>🐷 Cofrinho</h1>
 
     <div class="card saldo-card">
 
-        <h2>Saldo Atual</h2>
+        <div class="saldo-topo">
+            <h2>Saldo em conta</h2>
+            <button class="btn-olho" id="btnOlho" onclick="alternarSaldo()" title="Ocultar saldo" aria-label="Ocultar saldo">👁️</button>
+        </div>
 
         <div class="saldo-eyebrow">Patrimônio consolidado</div>
 
@@ -598,34 +676,34 @@ footer.rodape{
 
     <div class="cards-top">
 
-        <div class="top-card" style="--accent:var(--mint);">
-            <h3>💸 Total Rendimentos</h3>
+        <div class="top-card">
+            <h3><span class="icone-card" style="--accent-bg:rgba(0,224,160,0.14);">💸</span> Total Rendimentos</h3>
             <div class="valor" id="totalRendimento">
                 R$ 0,00
             </div>
         </div>
-		<div class="top-card" style="--accent:var(--blue);">
-			<h3>📅 Estimativa Mensal</h3>
+		<div class="top-card">
+			<h3><span class="icone-card" style="--accent-bg:rgba(63,157,255,0.14);">📅</span> Estimativa Mensal</h3>
 			<div class="valor" id="estimativaMensal">
 				R$ 0,00
 			</div>
 		</div>
-        <div class="top-card" style="--accent:var(--blue);">
-            <h3>📈 Previsão 30 dias</h3>
+        <div class="top-card">
+            <h3><span class="icone-card" style="--accent-bg:rgba(63,157,255,0.14);">📈</span> Previsão 30 dias</h3>
             <div class="valor" id="prev30">
                 R$ 0,00
             </div>
         </div>
 
-        <div class="top-card" style="--accent:var(--gold);">
-            <h3>🚀 Previsão 1 ano</h3>
+        <div class="top-card">
+            <h3><span class="icone-card" style="--accent-bg:rgba(255,198,92,0.14);">🚀</span> Previsão 1 ano</h3>
             <div class="valor" id="prev365">
                 R$ 0,00
             </div>
         </div>
 		
-		<div class="top-card" style="--accent:var(--text-2);">
-			<h3>📉 Estatísticas do Mês</h3>
+		<div class="top-card">
+			<h3><span class="icone-card" style="--accent-bg:rgba(160,170,195,0.14);">📉</span> Estatísticas do Mês</h3>
 
 			<div style="margin-top:10px;">
 				<strong id="mesAtual">
@@ -650,7 +728,7 @@ footer.rodape{
 				style="
 					margin-top:10px;
 					font-weight:bold;
-					color:var(--mint);
+					color:var(--mint-deep);
 				"
 			>
 				🚀 Crescimento líquido: R$ 0,00
@@ -1578,7 +1656,7 @@ function renderCofrinhos(calculo){
 
             <div style="
                 margin-top:10px;
-                color:#22c55e;
+                color:#00e0a0;
                 font-size:14px;
             ">
                 💸 + ${formatar(rendimento)}
@@ -1836,9 +1914,10 @@ function renderHistorico(){
 
         partes.push(`
             <tr style="
-                background:#1e293b;
+                background:#1a2233;
                 cursor:pointer;
                 font-weight:bold;
+                color:#f4f7fc;
             "
             onclick="toggleMes('${mes.replace(/'/g,"")}')">
 
@@ -1848,7 +1927,7 @@ function renderHistorico(){
 
                     <span style="
                         float:right;
-                        color:${totalMes >= 0 ? '#22c55e' : '#ef4444'};
+                        color:${totalMes >= 0 ? '#00e0a0' : '#ff6b7a'};
                     ">
                         ${formatar(totalMes)}
                     </span>
@@ -1996,13 +2075,13 @@ function renderGrafico(historico){
         grafico.destroy();
     }
 
-    // gradiente igual estilo Investidor10
+    // gradiente estilo cartão bancário
     const gradient = ctx
         .getContext("2d")
         .createLinearGradient(0,0,0,400);
 
-    gradient.addColorStop(0,"rgba(34,197,94,0.35)");
-    gradient.addColorStop(1,"rgba(34,197,94,0)");
+    gradient.addColorStop(0,"rgba(0,116,228,0.22)");
+    gradient.addColorStop(1,"rgba(0,116,228,0)");
 
     grafico = new Chart(ctx,{
         type:"line",
@@ -2015,7 +2094,7 @@ function renderGrafico(historico){
                     label:"Patrimônio",
                     data:valores,
 
-                    borderColor:"#22c55e",
+                    borderColor:"#3f9dff",
                     backgroundColor:gradient,
                     fill:true,
 
@@ -2031,7 +2110,7 @@ function renderGrafico(historico){
                     label:"Total Depositado",
                     data:depositado,
 
-                    borderColor:"#3b82f6",
+                    borderColor:"#00e0a0",
 
                     backgroundColor:"transparent",
 
@@ -2048,7 +2127,7 @@ function renderGrafico(historico){
                     label:"Total Retirado",
                     data:retirado,
 
-                    borderColor:"#ef4444",
+                    borderColor:"#ff6b7a",
 
                     backgroundColor:"transparent",
 
@@ -2063,7 +2142,7 @@ function renderGrafico(historico){
                     label:"Lucro",
                     data:lucro,
 
-                    borderColor:"#facc15",
+                    borderColor:"#ffc65c",
 
                     backgroundColor:"transparent",
 
@@ -2094,7 +2173,7 @@ function renderGrafico(historico){
                     display:true,
 
                     labels:{
-                        color:"#cbd5e1",
+                        color:"#a3aec4",
                         padding:20,
                         usePointStyle:true,
                         pointStyle:"circle"
@@ -2102,10 +2181,11 @@ function renderGrafico(historico){
                 },
 
                 tooltip:{
-                    backgroundColor:"#111827",
-                    borderColor:"#334155",
+                    backgroundColor:"#0d1220",
+                    borderColor:"rgba(255,255,255,0.1)",
                     borderWidth:1,
                     padding:12,
+                    cornerRadius:10,
 
                     callbacks:{
                         label:function(context){
@@ -2129,7 +2209,7 @@ function renderGrafico(historico){
                         display:false
                     },
                     ticks:{
-                        color:"#94a3b8",
+                        color:"#707d96",
                         maxTicksLimit:5
                     }
                 },
@@ -2139,11 +2219,11 @@ function renderGrafico(historico){
                     grace:"12%",
 
                     grid:{
-                        color:"rgba(148,163,184,0.08)"
+                        color:"rgba(255,255,255,0.05)"
                     },
 
                     ticks:{
-                        color:"#94a3b8",
+                        color:"#707d96",
 
                         callback:function(value){
                             return value.toLocaleString(
@@ -2161,6 +2241,25 @@ function renderGrafico(historico){
         }
     });
 }
+
+// mostra/oculta o valor do saldo (só visual — não mexe em nenhum cálculo)
+let saldoOculto = false;
+function alternarSaldo(){
+
+    saldoOculto = !saldoOculto;
+
+    document
+        .getElementById("saldo")
+        .classList.toggle("oculto", saldoOculto);
+
+    document.getElementById("btnOlho").textContent =
+        saldoOculto ? "🙈" : "👁️";
+
+    document.getElementById("btnOlho").title =
+        saldoOculto ? "Mostrar saldo" : "Ocultar saldo";
+
+}
+window.alternarSaldo = alternarSaldo;
 
 function mostrarPush(valor){
 
