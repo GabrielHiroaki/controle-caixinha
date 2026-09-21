@@ -814,6 +814,45 @@ footer.rodape{
 
     <div class="card">
 
+        <h2>🔄 Transferir entre Cofrinhos</h2>
+
+        <div class="grid" style="margin-top:16px;">
+
+            <div>
+                <label for="transfOrigem">De</label>
+                <select id="transfOrigem"></select>
+            </div>
+
+            <div>
+                <label for="transfDestino">Para</label>
+                <select id="transfDestino"></select>
+            </div>
+
+            <div>
+                <label for="transfValor">Valor</label>
+                <input type="number" id="transfValor" step="0.01" min="0.01" placeholder="R$ 0,00">
+            </div>
+
+            <div>
+                <label for="transfDescricao">Descrição (opcional)</label>
+                <input type="text" id="transfDescricao" placeholder="Ex: Ajuste entre cofrinhos">
+            </div>
+
+        </div>
+
+        <br>
+
+        <button
+            class="btn-block"
+            id="btnTransferir"
+            onclick="transferirEntreCofrinhos()">
+            🔄 Transferir
+        </button>
+
+    </div>
+
+    <div class="card">
+
         <h2>📊 Crescimento</h2>
             <div class="periodos-grafico" id="periodosGrafico">
 
@@ -896,6 +935,7 @@ import {
     addDoc,
     getDocs,
     deleteDoc,
+    updateDoc,
     doc
 }
 from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
@@ -990,26 +1030,31 @@ let dados = {
 };
 function renderSelectCofrinhos(){
 
-    const select =
-        document.getElementById("cofrinho");
-
-    const valorSelecionado = select.value;
-
     const opcoes = dados.cofrinhos.map(cofre => `
             <option value="${cofre.firestoreId}">
                 ${cofre.nome}
             </option>
-        `);
+        `).join("");
 
-    select.innerHTML = opcoes.join("");
+    // preenche o select do lançamento normal + os dois da transferência
+    ["cofrinho","transfOrigem","transfDestino"].forEach(id=>{
 
-    // mantém o cofrinho que já estava selecionado, se ainda existir
-    if(
-        valorSelecionado &&
-        dados.cofrinhos.some(c => c.firestoreId === valorSelecionado)
-    ){
-        select.value = valorSelecionado;
-    }
+        const select = document.getElementById(id);
+        if(!select) return;
+
+        const valorSelecionado = select.value;
+
+        select.innerHTML = opcoes;
+
+        // mantém o cofrinho que já estava selecionado, se ainda existir
+        if(
+            valorSelecionado &&
+            dados.cofrinhos.some(c => c.firestoreId === valorSelecionado)
+        ){
+            select.value = valorSelecionado;
+        }
+
+    });
 
 }
 async function carregarCofrinhos(){
@@ -1046,6 +1091,49 @@ async function criarCofrinho(nome){
 
     renderSelectCofrinhos();
 }
+async function renomearCofrinho(firestoreId){
+
+    const cofre =
+        dados.cofrinhos.find(c => c.firestoreId === firestoreId);
+
+    if(!cofre) return;
+
+    const novoNome = prompt("Novo nome do cofrinho:", cofre.nome);
+
+    // cancelou a caixa de diálogo
+    if(novoNome === null) return;
+
+    const nomeLimpo = novoNome.trim();
+
+    if(!nomeLimpo){
+        alert("Digite um nome");
+        return;
+    }
+
+    const jaExiste =
+        dados.cofrinhos.some(
+            c =>
+            c.firestoreId !== firestoreId &&
+            c.nome.toLowerCase() === nomeLimpo.toLowerCase()
+        );
+
+    if(jaExiste){
+        alert("Já existe um cofrinho com esse nome");
+        return;
+    }
+
+    await updateDoc(
+        doc(db, "cofrinhos", firestoreId),
+        { nome: nomeLimpo }
+    );
+
+    // atualiza local em vez de baixar a coleção inteira de novo
+    cofre.nome = nomeLimpo;
+
+    renderSelectCofrinhos();
+    atualizarTudo();
+}
+window.renomearCofrinho = renomearCofrinho;
 async function criarNovoCofrinho(){
 
     const input =
@@ -1221,6 +1309,109 @@ async function excluir(firestoreId){
 
     atualizarTudo();
 }
+async function transferirEntreCofrinhos(){
+
+    const origemId =
+        document.getElementById("transfOrigem").value;
+
+    const destinoId =
+        document.getElementById("transfDestino").value;
+
+    const valor =
+        parseFloat(document.getElementById("transfValor").value);
+
+    const descricaoDigitada =
+        document.getElementById("transfDescricao").value.trim();
+
+    if(!origemId || !destinoId){
+        alert("Escolha os dois cofrinhos");
+        return;
+    }
+
+    if(origemId === destinoId){
+        alert("Escolha cofrinhos diferentes para transferir");
+        return;
+    }
+
+    if(!valor || valor <= 0){
+        alert("Valor inválido");
+        return;
+    }
+
+    // mesma validação de saldo já usada no saque normal
+    const calculo = calcularSistema();
+
+    const saldoOrigem =
+        calculo.saldoCofres?.[origemId] || 0;
+
+    if(valor > saldoOrigem){
+        alert("Saldo insuficiente no cofrinho de origem");
+        return;
+    }
+
+    const hoje =
+        new Date().toISOString().split("T")[0];
+
+    const nomeOrigem = obterNomeCofrinho(origemId);
+    const nomeDestino = obterNomeCofrinho(destinoId);
+
+    const idBase = Date.now();
+
+    const descSaida =
+        descricaoDigitada || `Transferência para ${nomeDestino}`;
+
+    const descEntrada =
+        descricaoDigitada || `Transferência de ${nomeOrigem}`;
+
+    // por baixo dos panos é exatamente uma saída + uma entrada —
+    // a mesma coisa que dá pra fazer manualmente, só que numa ação só.
+    // isso mantém a calcularSistema() 100% intocada.
+    const docSaida = await addDoc(collection(db, "lancamentos"),{
+        id: idBase,
+        tipo:"saida",
+        valor,
+        descricao: descSaida,
+        cofrinhoId: origemId,
+        data: hoje
+    });
+
+    const docEntrada = await addDoc(collection(db, "lancamentos"),{
+        id: idBase + 1,
+        tipo:"entrada",
+        valor,
+        descricao: descEntrada,
+        cofrinhoId: destinoId,
+        data: hoje
+    });
+
+    // atualiza local em vez de baixar a coleção inteira de novo
+    dados.lancamentos.push(
+        {
+            firestoreId: docSaida.id,
+            id: idBase,
+            tipo:"saida",
+            valor,
+            descricao: descSaida,
+            cofrinhoId: origemId,
+            data: hoje
+        },
+        {
+            firestoreId: docEntrada.id,
+            id: idBase + 1,
+            tipo:"entrada",
+            valor,
+            descricao: descEntrada,
+            cofrinhoId: destinoId,
+            data: hoje
+        }
+    );
+
+    document.getElementById("transfValor").value = "";
+    document.getElementById("transfDescricao").value = "";
+
+    atualizarTudo();
+}
+window.transferirEntreCofrinhos = transferirEntreCofrinhos;
 window.adicionarLancamento = adicionarLancamento;
 window.excluir = excluir;
 function obterAliquotaIR(dias){
@@ -1644,13 +1835,25 @@ function renderCofrinhos(calculo){
         const rendimento =
             calculo.rendimentoCofres?.[nome] || 0;
 
+        const ehCofrinhoReal =
+            dados.cofrinhos.some(c => c.firestoreId === nome);
+
         return `
 
         <div class="top-card">
 
-            <h3>${obterNomeCofrinho(nome)}</h3>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                <h3 style="margin-bottom:0;">${obterNomeCofrinho(nome)}</h3>
+                ${ehCofrinhoReal ? `
+                <button
+                    onclick="renomearCofrinho('${nome}')"
+                    title="Renomear cofrinho"
+                    style="padding:5px 9px; font-size:12px; border-radius:8px;">
+                    ✏️
+                </button>` : ``}
+            </div>
 
-            <div class="valor">
+            <div class="valor" style="margin-top:10px;">
                 ${formatar(saldo)}
             </div>
 
