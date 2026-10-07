@@ -2781,155 +2781,242 @@ async function gerarPDFResumo(){
         }
 
     });
-	// =====================
-	// NOVA PÁGINA
-	// =====================
-	
-	pdf.addPage();
-	
-	pdf.setFont("helvetica","bold");
-	pdf.setFontSize(18);
-	
-	pdf.text(
-	    "Rendimentos Mensais",
-	    15,
-	    18
-	);
-	// ======================
-	// GRÁFICO DE RENDIMENTOS MENSAIS
-	// ======================
 
-	const dadosGrafico = obterRendimentosMensais();
+    // =====================
+    // NOVA PÁGINA
+    // =====================
 
-	// canvas em alta resolução, na MESMA proporção do espaço
-	// reservado no PDF (186 x 130mm) — evita o gráfico esticado/deformado
-	const larguraPdf = 186;
-	const alturaPdf = 130;
-	const escala = 6; // px por mm, para ficar nítido na impressão
+    pdf.addPage();
 
-	const canvas = document.createElement("canvas");
-	canvas.width = larguraPdf * escala;
-	canvas.height = alturaPdf * escala;
+    pdf.setFont("helvetica","bold");
+    pdf.setFontSize(18);
 
-	const ctx = canvas.getContext("2d");
+    pdf.text(
+        "Rendimentos Mensais",
+        15,
+        18
+    );
 
-	// fundo branco explícito (o PDF é branco; sem isso o PNG fica transparente)
-	ctx.fillStyle = "#ffffff";
-	ctx.fillRect(0,0,canvas.width,canvas.height);
+    // ======================
+    // GRÁFICO DE RENDIMENTOS MENSAIS
+    // ======================
 
-	// gradiente verde para as barras, no mesmo tom do restante do relatório
-	const gradienteBarra = ctx.createLinearGradient(0,0,0,canvas.height);
-	gradienteBarra.addColorStop(0,"#4ade80");
-	gradienteBarra.addColorStop(1,"#16a34a");
+    const dadosGrafico = obterRendimentosMensais();
 
-	new Chart(ctx,{
-	    type:"bar",
+    // canvas em alta resolução, na MESMA proporção do espaço
+    // reservado no PDF (186 x 130mm) — evita o gráfico esticado/deformado
+    const larguraPdf = 186;
+    const alturaPdf = 130;
+    const escala = 6; // px por mm, para ficar nítido na impressão
 
-	    data:{
-	        labels:dadosGrafico.map(x=>x.mes),
+    const canvas = document.createElement("canvas");
+    canvas.width = larguraPdf * escala;
+    canvas.height = alturaPdf * escala;
 
-			datasets:[{
+    const ctx = canvas.getContext("2d");
 
-			    label:"Rendimento Mensal",
+    // fundo branco explícito (o PDF é branco; sem isso o PNG fica transparente)
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
 
-			    data:dadosGrafico.map(x=>x.rendimento),
+    // valor atual, valor do mês anterior e diferença de cada mês
+    const atuais = dadosGrafico.map(x => x.rendimento);
 
-			    backgroundColor:gradienteBarra,
+    const anteriores = atuais.map((v,i) => i === 0 ? v : atuais[i-1]);
 
-			    borderRadius:{ topLeft:8, topRight:8 },
-			    borderSkipped:false,
+    // parte "base": até o valor do mês passado (verde escuro)
+    const base = atuais.map((v,i) => Math.min(v, anteriores[i]));
 
-			    maxBarThickness:60,
+    // crescimento acima do mês passado (verde claro)
+    const crescimento = atuais.map((v,i) => Math.max(v - anteriores[i], 0));
 
-			    datalabels:{
-			        display:true,
-			        anchor:"end",
-			        align:"top",
-			        offset:4,
+    // queda em relação ao mês passado (vermelho claro)
+    const queda = atuais.map((v,i) => Math.max(anteriores[i] - v, 0));
 
-			        font:{
-			            size:18,
-			            weight:"bold",
-			            family:"Helvetica"
-			        },
+    // altura onde o rótulo fica (topo da barra mais alta do mês)
+    const topoRotulo = atuais.map((v,i) => Math.max(v, anteriores[i]));
 
-			        color:"#166534",
+    function variacaoPct(i){
+        if(i === 0 || anteriores[i] <= 0) return null;
+        return ((atuais[i] - anteriores[i]) / anteriores[i]) * 100;
+    }
 
-			        formatter(valor){
-			            return valor.toLocaleString(
-			                "pt-BR",
-			                {
-			                    style:"currency",
-			                    currency:"BRL"
-			                }
-			            );
-			        }
-			    }
+    new Chart(ctx,{
+        type:"bar",
 
-			}]
-	    },
+        data:{
+            labels:dadosGrafico.map(x=>x.mes),
 
-	    options:{
-	        responsive:false,
-	        devicePixelRatio:1,
+            datasets:[
 
-	        layout:{
-	            padding:{ top:36, right:12, left:6, bottom:4 }
-	        },
+                {
+                    type:"bar",
+                    label:"Mês anterior",
+                    data:base,
+                    backgroundColor:"#15803d",
+                    stack:"rend",
+                    maxBarThickness:60,
+                    order:2
+                },
 
-	        plugins:{
-	            legend:{
-	                display:false
-	            },
-	            datalabels:{
-	                display:true
-	            }
-	        },
+                {
+                    type:"bar",
+                    label:"Crescimento",
+                    data:crescimento,
+                    backgroundColor:"#4ade80",
+                    borderRadius:{ topLeft:8, topRight:8 },
+                    borderSkipped:false,
+                    stack:"rend",
+                    maxBarThickness:60,
+                    order:2
+                },
 
-	        scales:{
-	            x:{
-	                grid:{ display:false },
-	                border:{ color:"#cbd5e1" },
-	                ticks:{
-	                    color:"#334155",
-	                    font:{ size:20, family:"Helvetica" }
-	                }
-	            },
-	            y:{
-	                beginAtZero:true,
-	                grace:"18%",
-	                border:{ display:false },
-	                grid:{ color:"#e2e8f0" },
-	                ticks:{
-	                    color:"#64748b",
-	                    font:{ size:16, family:"Helvetica" },
-	                    callback:function(valor){
-	                        return valor.toLocaleString(
-	                            "pt-BR",
-	                            {
-	                                style:"currency",
-	                                currency:"BRL",
-	                                maximumFractionDigits:0
-	                            }
-	                        );
-	                    }
-	                }
-	            }
-	        }
-	    }
-	});
-	await new Promise(r=>setTimeout(r,300));
+                {
+                    type:"bar",
+                    label:"Queda",
+                    data:queda,
+                    backgroundColor:"#fca5a5",
+                    borderRadius:{ topLeft:8, topRight:8 },
+                    borderSkipped:false,
+                    stack:"rend",
+                    maxBarThickness:60,
+                    order:2
+                },
 
-	const img = canvas.toDataURL("image/png");
+                // linha invisível, serve só para posicionar o rótulo no topo
+                {
+                    type:"line",
+                    label:"rotulo",
+                    data:topoRotulo,
+                    borderColor:"transparent",
+                    backgroundColor:"transparent",
+                    pointRadius:0,
+                    order:1,
 
-	pdf.addImage(
-	    img,
-	    "PNG",
-	    12,
-	    28,
-	    larguraPdf,
-	    alturaPdf
-	);
+                    datalabels:{
+                        display:true,
+                        anchor:"end",
+                        align:"top",
+                        offset:4,
+                        textAlign:"center",
+
+                        font:{
+                            size:16,
+                            weight:"bold",
+                            family:"Helvetica"
+                        },
+
+                        color(c){
+                            const p = variacaoPct(c.dataIndex);
+                            if(p === null) return "#166534";
+                            return p >= 0 ? "#166534" : "#b91c1c";
+                        },
+
+                        formatter(valor, c){
+
+                            const i = c.dataIndex;
+
+                            const linha1 =
+                                atuais[i].toLocaleString("pt-BR",{
+                                    style:"currency",
+                                    currency:"BRL"
+                                });
+
+                            const p = variacaoPct(i);
+
+                            if(p === null) return linha1;
+
+                            const seta = p >= 0 ? "▲" : "▼";
+
+                            return [
+                                linha1,
+                                seta + " " +
+                                Math.abs(p).toLocaleString("pt-BR",{
+                                    maximumFractionDigits:1
+                                }) + "%"
+                            ];
+                        }
+                    }
+                }
+
+            ]
+        },
+
+        options:{
+            responsive:false,
+            devicePixelRatio:1,
+
+            layout:{
+                padding:{ top:50, right:12, left:6, bottom:4 }
+            },
+
+            plugins:{
+                legend:{
+                    display:true,
+                    position:"bottom",
+                    labels:{
+                        color:"#334155",
+                        font:{ size:18, family:"Helvetica" },
+                        padding:18,
+                        boxWidth:18,
+                        boxHeight:18,
+                        // esconde a linha invisível da legenda
+                        filter:(item)=> item.text !== "rotulo"
+                    }
+                },
+                datalabels:{
+                    display:false
+                }
+            },
+
+            scales:{
+                x:{
+                    stacked:true,
+                    grid:{ display:false },
+                    border:{ color:"#cbd5e1" },
+                    ticks:{
+                        color:"#334155",
+                        font:{ size:20, family:"Helvetica" }
+                    }
+                },
+                y:{
+                    stacked:true,
+                    beginAtZero:true,
+                    grace:"18%",
+                    border:{ display:false },
+                    grid:{ color:"#e2e8f0" },
+                    ticks:{
+                        color:"#64748b",
+                        font:{ size:16, family:"Helvetica" },
+                        callback:function(valor){
+                            return valor.toLocaleString(
+                                "pt-BR",
+                                {
+                                    style:"currency",
+                                    currency:"BRL",
+                                    maximumFractionDigits:0
+                                }
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    await new Promise(r=>setTimeout(r,300));
+
+    const img = canvas.toDataURL("image/png");
+
+    pdf.addImage(
+        img,
+        "PNG",
+        12,
+        28,
+        larguraPdf,
+        alturaPdf
+    );
+
     // =====================
     // RODAPÉ
     // =====================
